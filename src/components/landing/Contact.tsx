@@ -22,7 +22,7 @@ export function Contact() {
           <p className="text-sm font-semibold text-primary uppercase tracking-widest">Get in touch</p>
           <h2 className="mt-3 text-4xl sm:text-5xl font-bold tracking-tight">Contact Us</h2>
           <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
-            Questions about SmartPark AI? Our team is here to help.
+            Questions about ParkWise AI? Our team is here to help.
           </p>
         </div>
 
@@ -48,7 +48,7 @@ export function Contact() {
                 </div>
                 <div>
                   <p className="text-xs text-white/50 uppercase">Email</p>
-                  <p className="font-semibold">hello@smartpark.ai</p>
+                  <p className="font-semibold">hello@parkwise.ai</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">

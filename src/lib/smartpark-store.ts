@@ -1,5 +1,5 @@
-// Lightweight localStorage-backed mock store for SmartPark AI demo.
-export type Role = "proprietor" | "manager";
+// Lightweight localStorage-backed mock store for ParkWise AI demo.
+export type Role = "proprietor" | "manager" | "vehicle_owner" | "parking_manager";
 
 export type Vehicle = {
   id: string;
@@ -20,12 +20,30 @@ export type Booking = {
 };
 
 export type Profile = {
+  id?: string;
   fullName: string;
   email: string;
   phone: string;
   address: string;
   postal: string;
   role: Role;
+  token?: string;
+  profileCompleted?: boolean;
+  parkingName?: string;
+  parkingAddress?: string;
+  city?: string;
+  contactNumber?: string;
+  parkingType?: string;
+  totalCapacity?: number;
+  bikeSlots?: number;
+  carSlots?: number;
+  suvSlots?: number;
+  truckSlots?: number;
+  bikePrice?: number;
+  carPrice?: number;
+  suvPrice?: number;
+  truckPrice?: number;
+  facilities?: string[];
 };
 
 const KEY = "smartpark.session.v1";

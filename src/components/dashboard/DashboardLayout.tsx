@@ -1,8 +1,10 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Bell, Car, CreditCard, History, LayoutDashboard, LifeBuoy, LogOut, MapPin, Menu, Search, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { loadSession, logout } from "@/lib/smartpark-store";
+import { loadSession, logout, saveSession, Profile } from "@/lib/smartpark-store";
 import { Toaster } from "@/components/ui/sonner";
+import { ManagerDashboard } from "@/components/dashboard/ManagerDashboard";
+import { toast } from "sonner";
 
 type NavItem = { to: "/dashboard/book" | "/dashboard/vehicles"; label: string; icon: typeof MapPin | typeof Car; exact?: boolean };
 const nav: NavItem[] = [
@@ -14,16 +16,113 @@ export function DashboardLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [profile, setProfile] = useState<{ fullName: string; email: string } | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    const s = loadSession();
-    setProfile(s.profile ? { fullName: s.profile.fullName, email: s.profile.email } : { fullName: "Demo User", email: "demo@smartpark.ai" });
+    const checkAuth = async () => {
+      const s = loadSession();
+      if (!s.profile || !s.profile.token) {
+        toast.error("Authentication required. Please log in.");
+        navigate({ to: "/login" });
+        return;
+      }
+
+      try {
+        const meRes = await fetch("http://localhost:5000/api/auth/me", {
+          headers: { "Authorization": `Bearer ${s.profile.token}` },
+        });
+        const meJson = await meRes.json();
+        if (!meJson.success) {
+          throw new Error("Invalid session token");
+        }
+
+        if (!meJson.data.profileCompleted) {
+          toast.error("Please complete your profile registration first.");
+          navigate({ to: meJson.data.role === "parking_manager" ? "/register/manager" : "/register/proprietor" });
+          return;
+        }
+
+        const updatedProfile = {
+          ...s.profile,
+          fullName: meJson.data.name || "",
+          email: meJson.data.email,
+          phone: meJson.data.phone || "",
+          profileCompleted: meJson.data.profileCompleted,
+        };
+        setProfile(updatedProfile);
+
+        let userVehicles = s.vehicles;
+        let userBookings = s.bookings;
+
+        if (updatedProfile.role === "vehicle_owner" || updatedProfile.role === "proprietor") {
+          const vehRes = await fetch("http://localhost:5000/api/vehicles", {
+            headers: { "Authorization": `Bearer ${s.profile.token}` },
+          });
+          const vehJson = await vehRes.json();
+          if (vehJson.success) {
+            userVehicles = vehJson.data.map((v: any) => ({
+              id: v._id,
+              number: v.vehicleNumber,
+              type: v.vehicleType,
+              color: v.vehicleColor,
+              model: v.vehicleModel,
+            }));
+          }
+
+          const bookRes = await fetch("http://localhost:5000/api/bookings", {
+            headers: { "Authorization": `Bearer ${s.profile.token}` },
+          });
+          const bookJson = await bookRes.json();
+          if (bookJson.success) {
+            userBookings = bookJson.data.map((b: any) => ({
+              id: b._id,
+              lot: b.parkingLotId?.parkingName || "Assigned Lot",
+              slot: b.slotId?.slotId || "Assigned Slot",
+              date: b.entryTime ? b.entryTime.slice(0, 10) : "",
+              time: b.entryTime ? new Date(b.entryTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "",
+              status: b.bookingStatus === "active" ? "Active" : b.bookingStatus === "completed" ? "Completed" : b.bookingStatus === "cancelled" ? "Cancelled" : "Upcoming",
+              price: b.price || 40,
+            }));
+          }
+        }
+
+        saveSession({
+          profile: updatedProfile,
+          vehicles: userVehicles,
+          bookings: userBookings,
+        });
+
+        setCheckingAuth(false);
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        logout();
+        toast.error("Session expired. Please log in again.");
+        navigate({ to: "/login" });
+      }
+    };
+
+    checkAuth();
   }, []);
 
   function onLogout() {
     logout();
     navigate({ to: "/" });
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-sm text-muted-foreground font-semibold">Validating ParkWise AI secure session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (profile?.role === "manager" || profile?.role === "parking_manager") {
+    return <ManagerDashboard />;
   }
 
   return (
@@ -36,8 +135,8 @@ export function DashboardLayout() {
       >
         <div className="px-6 h-16 flex items-center justify-between border-b border-white/10">
           <Link to="/" className="flex items-center gap-2">
-            <span className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-secondary font-bold">S</span>
-            <span className="font-bold">SmartPark <span className="text-primary">AI</span></span>
+            <span className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-secondary font-bold">P</span>
+            <span className="font-bold">ParkWise <span className="text-primary">AI</span></span>
           </Link>
           <button className="lg:hidden" onClick={() => setMobileOpen(false)}><X className="h-5 w-5" /></button>
         </div>

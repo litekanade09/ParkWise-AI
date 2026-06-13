@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -18,6 +20,16 @@ import { Route as RegisterManagerRouteImport } from './routes/register.manager'
 import { Route as DashboardVehiclesRouteImport } from './routes/dashboard.vehicles'
 import { Route as DashboardBookRouteImport } from './routes/dashboard.book'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -63,6 +75,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/dashboard/book': typeof DashboardBookRoute
   '/dashboard/vehicles': typeof DashboardVehiclesRoute
   '/register/manager': typeof RegisterManagerRoute
@@ -72,6 +86,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/dashboard/book': typeof DashboardBookRoute
   '/dashboard/vehicles': typeof DashboardVehiclesRoute
   '/register/manager': typeof RegisterManagerRoute
@@ -83,6 +99,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/dashboard/book': typeof DashboardBookRoute
   '/dashboard/vehicles': typeof DashboardVehiclesRoute
   '/register/manager': typeof RegisterManagerRoute
@@ -95,6 +113,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/login'
+    | '/signup'
     | '/dashboard/book'
     | '/dashboard/vehicles'
     | '/register/manager'
@@ -104,6 +124,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/login'
+    | '/signup'
     | '/dashboard/book'
     | '/dashboard/vehicles'
     | '/register/manager'
@@ -114,6 +136,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/login'
+    | '/signup'
     | '/dashboard/book'
     | '/dashboard/vehicles'
     | '/register/manager'
@@ -125,12 +149,28 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
   RegisterManagerRoute: typeof RegisterManagerRoute
   RegisterProprietorRoute: typeof RegisterProprietorRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -210,6 +250,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
   RegisterManagerRoute: RegisterManagerRoute,
   RegisterProprietorRoute: RegisterProprietorRoute,
 }

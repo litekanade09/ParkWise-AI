@@ -48,7 +48,7 @@
 
 :root {
   --radius: 0.875rem;
-  /* SmartPark AI palette */
+  /* ParkWise AI palette */
   --background: oklch(0.985 0.002 95);          /* #F8F9FA */
   --foreground: oklch(0.205 0 0);                /* #1A1A1A */
   --card: oklch(1 0 0);                          /* #FFFFFF */

@@ -17,49 +17,119 @@ function Vehicles() {
     setVehicles(loadSession().vehicles);
   }, []);
 
-  function add(e: React.FormEvent<HTMLFormElement>) {
+  async function add(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const v: Vehicle = {
-      id: crypto.randomUUID(),
-      number: String(fd.get("number")),
-      type: String(fd.get("type")),
-      color: String(fd.get("color")),
-      model: String(fd.get("model")),
-    };
     const s = loadSession();
-    const next = [...s.vehicles, v];
-    saveSession({ ...s, vehicles: next });
-    setVehicles(next);
-    setOpen(false);
-    toast.success("Vehicle added");
+    const userId = s.profile?.id || "6a2a6989ce280a2f405ff00b";
+
+    try {
+      const res = await fetch("http://localhost:5000/api/vehicles", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${s.profile?.token || ""}`
+        },
+        body: JSON.stringify({
+          userId,
+          vehicleNumber: String(fd.get("number")),
+          vehicleType: String(fd.get("type")),
+          vehicleColor: String(fd.get("color")),
+          vehicleModel: String(fd.get("model")),
+        }),
+      });
+
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.message || "Failed to add vehicle");
+      }
+
+      const v: Vehicle = {
+        id: json.data._id,
+        number: json.data.vehicleNumber,
+        type: json.data.vehicleType,
+        color: json.data.vehicleColor,
+        model: json.data.vehicleModel,
+      };
+
+      const next = [...s.vehicles, v];
+      saveSession({ ...s, vehicles: next });
+      setVehicles(next);
+      setOpen(false);
+      toast.success("Vehicle added successfully");
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred");
+      console.error(err);
+    }
   }
 
-  function edit(e: React.FormEvent<HTMLFormElement>) {
+  async function edit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!editingVehicle) return;
     const fd = new FormData(e.currentTarget);
-    const updated: Vehicle = {
-      id: editingVehicle.id,
-      number: String(fd.get("number")),
-      type: String(fd.get("type")),
-      color: String(fd.get("color")),
-      model: String(fd.get("model")),
-    };
     const s = loadSession();
-    const next = s.vehicles.map((v) => (v.id === editingVehicle.id ? updated : v));
-    saveSession({ ...s, vehicles: next });
-    setVehicles(next);
-    setEditingVehicle(null);
-    toast.success("Vehicle updated");
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/vehicles/${editingVehicle.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${s.profile?.token || ""}`
+        },
+        body: JSON.stringify({
+          vehicleType: String(fd.get("type")),
+          vehicleColor: String(fd.get("color")),
+          vehicleModel: String(fd.get("model")),
+        }),
+      });
+
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.message || "Failed to update vehicle");
+      }
+
+      const updated: Vehicle = {
+        id: editingVehicle.id,
+        number: json.data.vehicleNumber,
+        type: json.data.vehicleType,
+        color: json.data.vehicleColor,
+        model: json.data.vehicleModel,
+      };
+
+      const next = s.vehicles.map((v) => (v.id === editingVehicle.id ? updated : v));
+      saveSession({ ...s, vehicles: next });
+      setVehicles(next);
+      setEditingVehicle(null);
+      toast.success("Vehicle updated successfully");
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred");
+      console.error(err);
+    }
   }
 
-  function remove(id: string) {
+  async function remove(id: string) {
     const s = loadSession();
-    const next = s.vehicles.filter((v) => v.id !== id);
-    saveSession({ ...s, vehicles: next });
-    setVehicles(next);
-    toast.success("Vehicle removed");
+    try {
+      const res = await fetch(`http://localhost:5000/api/vehicles/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${s.profile?.token || ""}`
+        }
+      });
+
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.message || "Failed to remove vehicle");
+      }
+
+      const next = s.vehicles.filter((v) => v.id !== id);
+      saveSession({ ...s, vehicles: next });
+      setVehicles(next);
+      toast.success("Vehicle removed successfully");
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred");
+      console.error(err);
+    }
   }
 
   return (

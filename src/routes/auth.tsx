@@ -3,7 +3,7 @@ import { Building2, Car, ArrowLeft, ArrowRight } from "lucide-react";
 import { z } from "zod";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Choose your role — SmartPark AI" }] }),
+  head: () => ({ meta: [{ title: "Choose your role — ParkWise AI" }] }),
   component: AuthRoleSelect,
 });
 
@@ -14,8 +14,8 @@ function AuthRoleSelect() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="px-6 lg:px-8 h-16 flex items-center justify-between max-w-7xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-2">
-          <span className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-primary-foreground font-bold">S</span>
-          <span className="font-bold">SmartPark <span className="text-primary">AI</span></span>
+          <span className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-primary-foreground font-bold">P</span>
+          <span className="font-bold">ParkWise <span className="text-primary">AI</span></span>
         </Link>
         <Link to="/" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
           <ArrowLeft className="h-4 w-4" /> Back
@@ -29,7 +29,7 @@ function AuthRoleSelect() {
               Get started
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">Choose your role</h1>
-            <p className="mt-3 text-muted-foreground">Select how you'd like to use SmartPark AI.</p>
+            <p className="mt-3 text-muted-foreground">Select how you'd like to use ParkWise AI.</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">

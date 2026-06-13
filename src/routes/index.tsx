@@ -10,9 +10,9 @@ import { Toaster } from "@/components/ui/sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SmartPark AI — Find Parking Before You Reach There" },
-      { name: "description", content: "AI-powered smart parking management with real-time availability, smart booking, and secure vehicle management." },
-      { property: "og:title", content: "SmartPark AI — Smart Parking Management" },
+      { title: "ParkWise AI — Find Parking Before You Reach There" },
+      { name: "description", content: "Intelligent Parking Operations & Occupancy Monitoring Platform with real-time availability, smart booking, and secure vehicle management." },
+      { property: "og:title", content: "ParkWise AI — Intelligent Parking Operations" },
       { property: "og:description", content: "Real-time parking availability, smart booking, and AI-powered recommendations." },
     ],
   }),

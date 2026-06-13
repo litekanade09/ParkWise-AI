@@ -12,7 +12,7 @@ export function About() {
     <section id="about" className="py-24 bg-background">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-2xl mb-14">
-          <p className="text-sm font-semibold text-primary uppercase tracking-widest">Why SmartPark AI?</p>
+          <p className="text-sm font-semibold text-primary uppercase tracking-widest">Why ParkWise AI?</p>
           <h2 className="mt-3 text-4xl sm:text-5xl font-bold tracking-tight">Parking, reimagined for the AI era.</h2>
           <p className="mt-4 text-muted-foreground text-lg">
             A premium platform built for proprietors and managers — fast bookings, smart predictions, total visibility.

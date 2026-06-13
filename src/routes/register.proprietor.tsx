@@ -1,12 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { loadSession, saveSession } from "@/lib/smartpark-store";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/register/proprietor")({
-  head: () => ({ meta: [{ title: "Sign up — Vehicle Proprietor — SmartPark AI" }] }),
+  head: () => ({ meta: [{ title: "Sign up — Vehicle Proprietor — ParkWise AI" }] }),
   component: ProprietorRegister,
 });
 
@@ -44,6 +44,20 @@ function ProprietorRegister() {
   ]);
   const [success, setSuccess] = useState(false);
 
+  useEffect(() => {
+    const s = loadSession();
+    if (s.profile) {
+      setProfile({
+        fullName: s.profile.fullName || "",
+        email: s.profile.email || "",
+        address: s.profile.address || "",
+        phone: s.profile.phone || "",
+        postal: s.profile.postal || "",
+        agree: true,
+      });
+    }
+  }, []);
+
   const updateProfile = <K extends keyof ProfileData>(k: K, v: ProfileData[K]) =>
     setProfile((p) => ({ ...p, [k]: v }));
 
@@ -70,7 +84,7 @@ function ProprietorRegister() {
     setStep(1);
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     
     // Validate that all vehicles have data
@@ -82,40 +96,121 @@ function ProprietorRegister() {
       }
     }
 
-    const s = loadSession();
-    const formattedVehicles = vehicles.map((v) => ({
-      id: crypto.randomUUID(),
-      number: v.number,
-      type: v.type,
-      color: v.color,
-      model: v.model,
-    }));
+    try {
+      const s = loadSession();
+      let createdUserId = s.profile?.id;
+      let userToken = s.profile?.token;
 
-    saveSession({
-      ...s,
-      profile: {
-        fullName: profile.fullName,
-        email: profile.email,
-        phone: profile.phone,
-        address: profile.address,
-        postal: profile.postal,
-        role: "proprietor",
-      },
-      vehicles: [
-        ...s.vehicles,
-        ...formattedVehicles,
-      ],
-    });
-    setSuccess(true);
-    setTimeout(() => navigate({ to: "/dashboard/book" }), 1600);
+      // Guest flow fallback (compatibility)
+      if (!createdUserId) {
+        const userRes = await fetch("http://localhost:5000/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: profile.fullName,
+            email: profile.email,
+            phone: profile.phone,
+            password: "password123",
+            role: "vehicle_owner",
+          }),
+        });
+
+        const userJson = await userRes.json();
+        if (!userJson.success) {
+          throw new Error(userJson.message || "Failed to create user account");
+        }
+
+        createdUserId = userJson.data.user._id;
+        userToken = userJson.data.token;
+      }
+
+      // Update user profile on backend
+      const profileHeaders: any = { "Content-Type": "application/json" };
+      if (userToken) {
+        profileHeaders["Authorization"] = `Bearer ${userToken}`;
+      }
+      const profileRes = await fetch("http://localhost:5000/api/auth/profile", {
+        method: "PUT",
+        headers: profileHeaders,
+        body: JSON.stringify({
+          name: profile.fullName,
+          phone: profile.phone,
+          address: profile.address,
+          postalCode: profile.postal,
+        }),
+      });
+
+      const profileJson = await profileRes.json();
+      if (!profileJson.success) {
+        throw new Error(profileJson.message || "Failed to save profile information");
+      }
+
+      // Create Vehicles on Backend
+      const savedVehicles = [];
+      for (const veh of vehicles) {
+        const headers: any = { "Content-Type": "application/json" };
+        if (userToken) {
+          headers["Authorization"] = `Bearer ${userToken}`;
+        }
+        const vehRes = await fetch("http://localhost:5000/api/vehicles", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            userId: createdUserId,
+            vehicleNumber: veh.number,
+            vehicleType: veh.type === "Electric Vehicle" ? "Electric Vehicle" : veh.type,
+            vehicleColor: veh.color,
+            vehicleModel: veh.model,
+          }),
+        });
+
+        const vehJson = await vehRes.json();
+        if (!vehJson.success) {
+          throw new Error(vehJson.message || `Failed to register vehicle ${veh.number}`);
+        }
+        savedVehicles.push({
+          id: vehJson.data._id,
+          number: vehJson.data.vehicleNumber,
+          type: vehJson.data.vehicleType,
+          color: vehJson.data.vehicleColor,
+          model: vehJson.data.vehicleModel,
+        });
+      }
+
+      // Save to Local Session
+      saveSession({
+        ...s,
+        profile: {
+          id: createdUserId,
+          fullName: profile.fullName,
+          email: profile.email,
+          phone: profile.phone,
+          address: profile.address,
+          postal: profile.postal,
+          role: "vehicle_owner",
+          token: userToken,
+          profileCompleted: true,
+        },
+        vehicles: [
+          ...s.vehicles.filter(v => !savedVehicles.some(sv => sv.id === v.id)),
+          ...savedVehicles,
+        ],
+      });
+
+      setSuccess(true);
+      setTimeout(() => navigate({ to: "/dashboard/book" }), 1600);
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred during registration");
+      console.error(err);
+    }
   }
 
   return (
     <div className="min-h-screen bg-background">
       <header className="px-6 lg:px-8 h-16 flex items-center justify-between max-w-5xl mx-auto">
         <Link to="/" className="flex items-center gap-2">
-          <span className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-primary-foreground font-bold">S</span>
-          <span className="font-bold">SmartPark <span className="text-primary">AI</span></span>
+          <span className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-primary-foreground font-bold">P</span>
+          <span className="font-bold">ParkWise <span className="text-primary">AI</span></span>
         </Link>
         <Link to="/auth" className="text-sm text-muted-foreground flex items-center gap-1">
           <ArrowLeft className="h-4 w-4" /> Change role
