@@ -40,6 +40,8 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "ParkWise AI backend is healthy and running",
+    commit: process.env.RENDER_GIT_COMMIT || "local-dev",
+    branch: process.env.RENDER_GIT_BRANCH || "local",
     timestamp: new Date(),
   });
 });
