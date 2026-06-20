@@ -45,5 +45,3 @@ runs/
 datasets/
 dataset/
 
-# Model Weights
-*.pt

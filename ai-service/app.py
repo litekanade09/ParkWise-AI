@@ -5,11 +5,24 @@ import requests
 
 app = Flask(__name__)
 
+# Backend URL configuration
+BACKEND_URL = os.getenv(
+    "BACKEND_URL",
+    "https://parkwise-ai-c9wx.onrender.com"
+)
+
 # Load YOLO model
 model_path = os.path.join(os.path.dirname(__file__), "best.pt")
 print(f"Loading YOLO model from {model_path}...")
 model = YOLO(model_path)
 print("Model loaded successfully.")
+
+@app.route("/")
+def health():
+    return jsonify({
+        "success": True,
+        "message": "ParkWise AI Service Running"
+    })
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
@@ -53,7 +66,7 @@ def analyze():
         if parking_lot_id:
             # 1. Update Analytics (from Phase 2)
             try:
-                analytics_url = "http://localhost:5000/api/analytics/update"
+                analytics_url = f"{BACKEND_URL}/api/analytics/update"
                 analytics_payload = {
                     "parkingLotId": parking_lot_id,
                     "emptySlots": empty_count,
@@ -71,7 +84,7 @@ def analyze():
             # 2. Synchronize Slots (Phase 4)
             try:
                 # Fetch current slots for the lot
-                slots_url = f"http://localhost:5000/api/slots?parkingLotId={parking_lot_id}"
+                slots_url = f"{BACKEND_URL}/api/slots?parkingLotId={parking_lot_id}"
                 slots_response = requests.get(slots_url, timeout=5)
                 if slots_response.status_code == 200:
                     slots_data = slots_response.json().get("data", [])
@@ -89,7 +102,7 @@ def analyze():
                             })
                         
                         # Sync with Node backend
-                        sync_slots_url = "http://localhost:5000/api/slots/sync-occupancy"
+                        sync_slots_url = f"{BACKEND_URL}/api/slots/sync-occupancy"
                         sync_payload = {
                             "parkingLotId": parking_lot_id,
                             "detections": detections
