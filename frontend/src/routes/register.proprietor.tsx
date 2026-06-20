@@ -103,7 +103,7 @@ function ProprietorRegister() {
 
       // Guest flow fallback (compatibility)
       if (!createdUserId) {
-        const userRes = await fetch("http://localhost:5000/api/auth/register", {
+        const userRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -129,7 +129,7 @@ function ProprietorRegister() {
       if (userToken) {
         profileHeaders["Authorization"] = `Bearer ${userToken}`;
       }
-      const profileRes = await fetch("http://localhost:5000/api/auth/profile", {
+      const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/profile`, {
         method: "PUT",
         headers: profileHeaders,
         body: JSON.stringify({
@@ -152,7 +152,7 @@ function ProprietorRegister() {
         if (userToken) {
           headers["Authorization"] = `Bearer ${userToken}`;
         }
-        const vehRes = await fetch("http://localhost:5000/api/vehicles", {
+        const vehRes = await fetch(`${import.meta.env.VITE_API_URL}/api/vehicles`, {
           method: "POST",
           headers,
           body: JSON.stringify({

@@ -24,7 +24,7 @@ function Vehicles() {
     const userId = s.profile?.id || "6a2a6989ce280a2f405ff00b";
 
     try {
-      const res = await fetch("http://localhost:5000/api/vehicles", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/vehicles`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,7 +70,7 @@ function Vehicles() {
     const s = loadSession();
 
     try {
-      const res = await fetch(`http://localhost:5000/api/vehicles/${editingVehicle.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/vehicles/${editingVehicle.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -110,7 +110,7 @@ function Vehicles() {
   async function remove(id: string) {
     const s = loadSession();
     try {
-      const res = await fetch(`http://localhost:5000/api/vehicles/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/vehicles/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${s.profile?.token || ""}`

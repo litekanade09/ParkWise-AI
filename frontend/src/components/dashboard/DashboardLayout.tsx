@@ -29,7 +29,7 @@ export function DashboardLayout() {
       }
 
       try {
-        const meRes = await fetch("http://localhost:5000/api/auth/me", {
+        const meRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
           headers: { "Authorization": `Bearer ${s.profile.token}` },
         });
         const meJson = await meRes.json();
@@ -56,7 +56,7 @@ export function DashboardLayout() {
         let userBookings = s.bookings;
 
         if (updatedProfile.role === "vehicle_owner" || updatedProfile.role === "proprietor") {
-          const vehRes = await fetch("http://localhost:5000/api/vehicles", {
+          const vehRes = await fetch(`${import.meta.env.VITE_API_URL}/api/vehicles`, {
             headers: { "Authorization": `Bearer ${s.profile.token}` },
           });
           const vehJson = await vehRes.json();
@@ -70,7 +70,7 @@ export function DashboardLayout() {
             }));
           }
 
-          const bookRes = await fetch("http://localhost:5000/api/bookings", {
+          const bookRes = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings`, {
             headers: { "Authorization": `Bearer ${s.profile.token}` },
           });
           const bookJson = await bookRes.json();

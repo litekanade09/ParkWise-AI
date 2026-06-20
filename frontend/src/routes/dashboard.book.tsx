@@ -37,7 +37,7 @@ function BookParking() {
         if (s.profile?.token) {
           headers["Authorization"] = `Bearer ${s.profile.token}`;
         }
-        const res = await fetch(`http://localhost:5000/api/analytics/${selected}`, { headers });
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/analytics/${selected}`, { headers });
         const json = await res.json();
         if (json.success) {
           setAnalytics(json.data);
@@ -64,8 +64,8 @@ function BookParking() {
         headers["Authorization"] = `Bearer ${s.profile.token}`;
       }
       const url = query.trim()
-        ? `http://localhost:5000/api/parking-lots/search?q=${encodeURIComponent(query)}`
-        : "http://localhost:5000/api/parking-lots";
+        ? `${import.meta.env.VITE_API_URL}/api/parking-lots/search?q=${encodeURIComponent(query)}`
+        : `${import.meta.env.VITE_API_URL}/api/parking-lots`;
       const res = await fetch(url, { headers });
       const json = await res.json();
       if (json.success) {
@@ -152,7 +152,7 @@ function BookParking() {
       }
 
       // 1. Fetch or create a slot in the database for this parking lot
-      const slotQueryRes = await fetch(`http://localhost:5000/api/slots?parkingLotId=${lotDbId}&status=empty&slotType=${targetSlotType}`, { headers });
+      const slotQueryRes = await fetch(`${import.meta.env.VITE_API_URL}/api/slots?parkingLotId=${lotDbId}&status=empty&slotType=${targetSlotType}`, { headers });
       const slotQueryJson = await slotQueryRes.json();
       let slotId = "";
       let slotName = "";
@@ -171,7 +171,7 @@ function BookParking() {
         const maxCapacity = getSlotsForType(targetLot, targetSlotType);
         
         // Fetch all slots of this type currently registered in database
-        const allSlotsRes = await fetch(`http://localhost:5000/api/slots?parkingLotId=${lotDbId}&slotType=${targetSlotType}`, { headers });
+        const allSlotsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/slots?parkingLotId=${lotDbId}&slotType=${targetSlotType}`, { headers });
         const allSlotsJson = await allSlotsRes.json();
         const currentSlotCount = allSlotsJson.success ? allSlotsJson.data.length : 0;
 
@@ -197,7 +197,7 @@ function BookParking() {
         const prefix = prefixMap[targetSlotType] || "C";
         slotName = `${prefix}${Math.floor(1 + Math.random() * 99)}`;
 
-        const newSlotRes = await fetch("http://localhost:5000/api/slots", {
+        const newSlotRes = await fetch(`${import.meta.env.VITE_API_URL}/api/slots`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -224,7 +224,7 @@ function BookParking() {
       const now = new Date();
       const exit = new Date(Date.now() + 3 * 3600 * 1000); // 3 hours duration
 
-      const bookRes = await fetch("http://localhost:5000/api/bookings", {
+      const bookRes = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

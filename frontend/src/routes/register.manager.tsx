@@ -134,7 +134,7 @@ function ManagerRegister() {
 
       // Guest registration fallback (compatibility)
       if (!createdUserId) {
-        const userRes = await fetch("http://localhost:5000/api/auth/register", {
+        const userRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -160,7 +160,7 @@ function ManagerRegister() {
       if (userToken) {
         profileHeaders["Authorization"] = `Bearer ${userToken}`;
       }
-      const profileRes = await fetch("http://localhost:5000/api/auth/profile", {
+      const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/profile`, {
         method: "PUT",
         headers: profileHeaders,
         body: JSON.stringify({
@@ -182,7 +182,7 @@ function ManagerRegister() {
         headers["Authorization"] = `Bearer ${userToken}`;
       }
 
-      const lotRes = await fetch("http://localhost:5000/api/parking-lots", {
+      const lotRes = await fetch(`${import.meta.env.VITE_API_URL}/api/parking-lots`, {
         method: "POST",
         headers,
         body: JSON.stringify({

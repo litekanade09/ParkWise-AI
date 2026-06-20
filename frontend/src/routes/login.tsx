@@ -26,7 +26,7 @@ function Login() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -42,7 +42,7 @@ function Login() {
       // Check if manager already has a lot registered
       let userLotId = "";
       if (user.role === "parking_manager") {
-        const lotRes = await fetch(`http://localhost:5000/api/parking-lots?createdBy=${user._id}`, {
+        const lotRes = await fetch(`${import.meta.env.VITE_API_URL}/api/parking-lots?createdBy=${user._id}`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         const lotJson = await lotRes.json();
@@ -54,7 +54,7 @@ function Login() {
       // Fetch user's vehicles from backend
       let userVehicles: any[] = [];
       if (user.role === "vehicle_owner") {
-        const vehRes = await fetch(`http://localhost:5000/api/vehicles`, {
+        const vehRes = await fetch(`${import.meta.env.VITE_API_URL}/api/vehicles`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         const vehJson = await vehRes.json();
@@ -71,7 +71,7 @@ function Login() {
 
       // Fetch user's bookings from backend
       let userBookings: any[] = [];
-      const bookingsRes = await fetch("http://localhost:5000/api/bookings", {
+      const bookingsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const bookingsJson = await bookingsRes.json();

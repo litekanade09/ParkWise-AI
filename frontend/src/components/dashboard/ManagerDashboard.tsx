@@ -128,7 +128,7 @@ export function ManagerDashboard() {
     setLoadingAnalytics(true);
     setAnalyticsError(null);
     try {
-      const res = await fetch(`http://localhost:5000/api/analytics/${parkingLotId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/analytics/${parkingLotId}`, {
         headers: { "Authorization": `Bearer ${userToken}` }
       });
       const json = await res.json();
@@ -149,7 +149,7 @@ export function ManagerDashboard() {
     if (!userToken) return;
     try {
       // Fetch slots
-      const slotsRes = await fetch(`http://localhost:5000/api/slots?parkingLotId=${parkingLotId}`, {
+      const slotsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/slots?parkingLotId=${parkingLotId}`, {
         headers: { "Authorization": `Bearer ${userToken}` }
       });
       const slotsJson = await slotsRes.json();
@@ -168,7 +168,7 @@ export function ManagerDashboard() {
       }
 
       // Fetch bookings
-      const bookingsRes = await fetch(`http://localhost:5000/api/bookings?parkingLotId=${parkingLotId}`, {
+      const bookingsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings?parkingLotId=${parkingLotId}`, {
         headers: { "Authorization": `Bearer ${userToken}` }
       });
       const bookingsJson = await bookingsRes.json();
@@ -218,7 +218,7 @@ export function ManagerDashboard() {
 
         if (!lotId && s.profile.id && userToken) {
           try {
-            const lotRes = await fetch(`http://localhost:5000/api/parking-lots?createdBy=${s.profile.id}`, {
+            const lotRes = await fetch(`${import.meta.env.VITE_API_URL}/api/parking-lots?createdBy=${s.profile.id}`, {
               headers: { "Authorization": `Bearer ${userToken}` }
             });
             const lotJson = await lotRes.json();
@@ -295,7 +295,7 @@ export function ManagerDashboard() {
 
     try {
       const userToken = token || loadSession().profile?.token;
-      const res = await fetch("http://localhost:5000/api/slots", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/slots`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -359,7 +359,7 @@ export function ManagerDashboard() {
 
     try {
       const userToken = token || loadSession().profile?.token;
-      const res = await fetch(`http://localhost:5000/api/slots/${targetSlot.dbId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/slots/${targetSlot.dbId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -404,7 +404,7 @@ export function ManagerDashboard() {
 
     try {
       const userToken = token || loadSession().profile?.token;
-      const res = await fetch(`http://localhost:5000/api/slots/${targetSlot.dbId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/slots/${targetSlot.dbId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${userToken}`
@@ -428,7 +428,7 @@ export function ManagerDashboard() {
   const handleCancelBooking = async (id: string) => {
     try {
       const userToken = token || loadSession().profile?.token;
-      const res = await fetch(`http://localhost:5000/api/bookings/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -475,7 +475,7 @@ export function ManagerDashboard() {
 
     try {
       const userToken = token || loadSession().profile?.token;
-      const res = await fetch(`http://localhost:5000/api/parking-lots/${lotId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/parking-lots/${lotId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
