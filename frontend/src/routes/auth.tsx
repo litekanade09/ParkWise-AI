@@ -14,7 +14,6 @@ function AuthRoleSelect() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="px-6 lg:px-8 h-16 flex items-center justify-between max-w-7xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-2">
-          <span className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-primary-foreground font-bold">P</span>
           <span className="font-bold">ParkWise <span className="text-primary">AI</span></span>
         </Link>
         <Link to="/" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">

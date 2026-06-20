@@ -118,6 +118,33 @@ export function ManagerDashboard() {
   // Simulated CCTV Telemetry
   const [cctvTime, setCctvTime] = useState("");
 
+  // AI Occupancy Analytics States
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState<boolean>(true);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+
+  const fetchAnalyticsData = async (parkingLotId: string, userToken = token) => {
+    if (!userToken) return;
+    setLoadingAnalytics(true);
+    setAnalyticsError(null);
+    try {
+      const res = await fetch(`http://localhost:5000/api/analytics/${parkingLotId}`, {
+        headers: { "Authorization": `Bearer ${userToken}` }
+      });
+      const json = await res.json();
+      if (json.success) {
+        setAnalytics(json.data);
+      } else {
+        setAnalyticsError("No AI data available yet");
+      }
+    } catch (err) {
+      console.error("Error loading manager analytics:", err);
+      setAnalyticsError("No AI data available yet");
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
   const fetchBackendData = async (parkingLotId: string, userToken = token) => {
     if (!userToken) return;
     try {
@@ -208,10 +235,13 @@ export function ManagerDashboard() {
 
         if (lotId && userToken) {
           fetchBackendData(lotId, userToken);
+          fetchAnalyticsData(lotId, userToken);
         } else {
           // If no lot registered, clear mock arrays to avoid confusing user
           setSlots([]);
           setBookings([]);
+          setLoadingAnalytics(false);
+          setAnalyticsError("No AI data available yet");
         }
       }
     };
@@ -506,9 +536,6 @@ export function ManagerDashboard() {
       >
         <div className="px-6 h-16 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-2">
-            <span className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-secondary font-extrabold text-lg">
-              P
-            </span>
             <span className="font-bold text-lg tracking-tight">
               ParkWise <span className="text-primary">AI</span>
             </span>
@@ -734,6 +761,67 @@ export function ManagerDashboard() {
                           maintenance={slots.filter((s) => s.type === "Truck" && s.status === "Maintenance").length}
                         />
                       </div>
+                    </div>
+
+                    {/* AI Occupancy Overview */}
+                    <div className="bg-card border border-border rounded-3xl p-6 shadow-soft space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border pb-4 gap-2">
+                        <div>
+                          <h3 className="font-bold text-lg flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+                            AI Occupancy Overview
+                          </h3>
+                          <p className="text-xs text-muted-foreground font-medium">Statistics parsed from YOLO computer vision processing</p>
+                        </div>
+                        {analytics?.lastUpdated && (
+                          <div className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1 bg-muted px-2.5 py-1.5 rounded-lg border border-border">
+                            <Clock className="h-3.5 w-3.5 text-primary" />
+                            Last Updated: {new Date(analytics.lastUpdated).toLocaleString("en-US", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {loadingAnalytics ? (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-xs text-muted-foreground ml-2">Parsing AI analytics...</span>
+                        </div>
+                      ) : analyticsError ? (
+                        <div className="flex items-center gap-2 text-warning bg-warning/10 border border-warning/20 p-4 rounded-xl text-xs font-semibold">
+                          <Info className="h-4 w-4 flex-shrink-0" />
+                          <span>{analyticsError}</span>
+                        </div>
+                      ) : analytics ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="p-4 rounded-2xl bg-secondary/5 border border-border/60">
+                            <p className="text-xs text-muted-foreground font-semibold">Available (AI)</p>
+                            <p className="text-2xl font-black text-success mt-1">{analytics.emptySlots}</p>
+                          </div>
+                          <div className="p-4 rounded-2xl bg-secondary/5 border border-border/60">
+                            <p className="text-xs text-muted-foreground font-semibold">Occupied (AI)</p>
+                            <p className="text-2xl font-black text-destructive mt-1">{analytics.occupiedSlots}</p>
+                          </div>
+                          <div className="p-4 rounded-2xl bg-secondary/5 border border-border/60">
+                            <p className="text-xs text-muted-foreground font-semibold">Total Slots (AI)</p>
+                            <p className="text-2xl font-black text-foreground mt-1">{analytics.totalSlots}</p>
+                          </div>
+                          <div className="p-4 rounded-2xl bg-secondary/5 border border-border/60">
+                            <p className="text-xs text-muted-foreground font-semibold">AI Occupancy Rate</p>
+                            <p className="text-2xl font-black text-primary mt-1">
+                              {analytics.totalSlots > 0 ? ((analytics.occupiedSlots / analytics.totalSlots) * 100).toFixed(1) : 0}%
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-muted-foreground py-4">No AI data available yet</div>
+                      )}
                     </div>
 
                     {/* Occupancy and Activities */}

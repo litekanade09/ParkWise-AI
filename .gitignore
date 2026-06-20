@@ -30,3 +30,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Environment Variables
+.env
+**/.env
+
+# Python
+__pycache__/
+*.pyc
+
+# YOLO Training
+runs/
+
+# Datasets
+datasets/
+dataset/
+
+# Model Weights
+*.pt

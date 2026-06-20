@@ -16,6 +16,7 @@ import vehicleRoutes from "./routes/vehicleRoutes.js";
 import parkingLotRoutes from "./routes/parkingLotRoutes.js";
 import parkingSlotRoutes from "./routes/parkingSlotRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import parkingAnalyticsRoutes from "./routes/parkingAnalyticsRoutes.js";
 
 // Load environment variables
 dotenv.config();
@@ -50,6 +51,7 @@ app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/parking-lots", parkingLotRoutes);
 app.use("/api/slots", parkingSlotRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/analytics", parkingAnalyticsRoutes);
 
 // Fallback handlers
 app.use(notFound);

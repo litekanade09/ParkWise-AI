@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Calendar, Car, Clock, MapPin, Search } from "lucide-react";
+import { Calendar, Car, Clock, MapPin, Search, Sparkles, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { loadSession, saveSession, type Booking } from "@/lib/smartpark-store";
 import { toast } from "sonner";
@@ -15,6 +15,45 @@ function BookParking() {
   const [dbLots, setDbLots] = useState<any[]>([]);
   const [loadingLots, setLoadingLots] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // AI Occupancy Analytics States
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState<boolean>(false);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selected) {
+      setAnalytics(null);
+      setAnalyticsError(null);
+      return;
+    }
+
+    const fetchAnalytics = async () => {
+      setLoadingAnalytics(true);
+      setAnalyticsError(null);
+      try {
+        const s = loadSession();
+        const headers: any = {};
+        if (s.profile?.token) {
+          headers["Authorization"] = `Bearer ${s.profile.token}`;
+        }
+        const res = await fetch(`http://localhost:5000/api/analytics/${selected}`, { headers });
+        const json = await res.json();
+        if (json.success) {
+          setAnalytics(json.data);
+        } else {
+          setAnalyticsError("No AI data available yet");
+        }
+      } catch (err) {
+        console.error("Error fetching analytics:", err);
+        setAnalyticsError("No AI data available yet");
+      } finally {
+        setLoadingAnalytics(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [selected]);
 
   const fetchLots = async (query = "") => {
     setLoadingLots(true);
@@ -122,6 +161,25 @@ function BookParking() {
         slotId = slotQueryJson.data[0]._id;
         slotName = slotQueryJson.data[0].slotId;
       } else {
+        // Validate capacity before creating a slot on the fly
+        const targetLot = dbLots.find((l) => l._id === lotDbId);
+        if (!targetLot) {
+          toast.error("Target parking lot data is missing.");
+          return;
+        }
+
+        const maxCapacity = getSlotsForType(targetLot, targetSlotType);
+        
+        // Fetch all slots of this type currently registered in database
+        const allSlotsRes = await fetch(`http://localhost:5000/api/slots?parkingLotId=${lotDbId}&slotType=${targetSlotType}`, { headers });
+        const allSlotsJson = await allSlotsRes.json();
+        const currentSlotCount = allSlotsJson.success ? allSlotsJson.data.length : 0;
+
+        if (currentSlotCount >= maxCapacity) {
+          toast.error("No available slots currently. All slots for your vehicle type are occupied or reserved.");
+          return;
+        }
+
         // Create an empty slot on the fly
         const zoneMap: Record<string, string> = {
           "Bike": "Zone 1",
@@ -304,15 +362,68 @@ function BookParking() {
                     <span className="text-[10px] font-normal text-muted-foreground">/hr</span>
                   </p>
                 </div>
+                
+                {/* AI Live Availability Sub-Card */}
+                {selected === l._id && (
+                  <div className="mt-4 pt-4 border-t border-border space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <p className="text-xs font-bold text-primary flex items-center gap-1">
+                      <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+                      AI Live Availability
+                    </p>
+                    {loadingAnalytics ? (
+                      <div className="flex items-center gap-1.5 py-2 text-[10px] text-muted-foreground font-semibold">
+                        <div className="h-3.5 w-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        Parsing AI analytics...
+                      </div>
+                    ) : analyticsError ? (
+                      <div className="flex items-center gap-1.5 bg-warning/5 border border-warning/15 p-2 rounded-xl text-[10px] text-warning font-semibold">
+                        <Info className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>{analyticsError}</span>
+                      </div>
+                    ) : analytics ? (
+                      <div className="grid grid-cols-2 gap-2 text-[10px] bg-secondary/5 p-2.5 rounded-xl border border-border/40 font-semibold text-foreground">
+                        <div className="flex justify-between px-1">
+                          <span className="text-muted-foreground">Available (AI):</span>
+                          <span className="text-success font-black">{analytics.emptySlots}</span>
+                        </div>
+                        <div className="flex justify-between px-1">
+                          <span className="text-muted-foreground">Occupied (AI):</span>
+                          <span className="text-destructive font-black">{analytics.occupiedSlots}</span>
+                        </div>
+                        <div className="flex justify-between px-1 col-span-2 border-t border-border/30 pt-1 mt-1">
+                          <span className="text-muted-foreground">AI Occupancy Rate:</span>
+                          <span className="text-primary font-black">
+                            {analytics.totalSlots > 0 ? ((analytics.occupiedSlots / analytics.totalSlots) * 100).toFixed(1) : 0}%
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground">No live data available yet</p>
+                    )}
+                  </div>
+                )}
+
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                   <span className="text-xs font-bold text-success">
-                    {availableSlots} slots available (Capacity: {l.totalCapacity})
+                    {availableSlots === 0 ? (
+                      <span className="text-destructive font-bold flex items-center gap-1">
+                        <Info className="h-3.5 w-3.5 flex-shrink-0 animate-pulse" />
+                        No available slots currently
+                      </span>
+                    ) : (
+                      `${availableSlots} slots available (Capacity: ${l.totalCapacity})`
+                    )}
                   </span>
                   <button
+                    disabled={availableSlots === 0}
                     onClick={(e) => { e.stopPropagation(); book(l.parkingName, l._id, displayPrice); }}
-                    className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground font-semibold text-xs hover:bg-primary hover:text-primary-foreground transition cursor-pointer"
+                    className={`px-4 py-2 rounded-lg font-semibold text-xs transition ${
+                      availableSlots === 0
+                        ? "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
+                        : "bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer"
+                    }`}
                   >
-                    Book Now
+                    {availableSlots === 0 ? "Full" : "Book Now"}
                   </button>
                 </div>
               </div>

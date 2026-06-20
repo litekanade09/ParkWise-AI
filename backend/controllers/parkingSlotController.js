@@ -2,6 +2,19 @@ import parkingSlotService from "../services/parkingSlotService.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 
 class ParkingSlotController {
+  syncOccupancy = async (req, res, next) => {
+    try {
+      const { parkingLotId, detections } = req.body;
+      if (!parkingLotId || !detections || !Array.isArray(detections)) {
+        return sendError(res, "parkingLotId and detections (array) are required", {}, 400);
+      }
+      const syncResult = await parkingSlotService.syncOccupancy(parkingLotId, detections);
+      return sendSuccess(res, "Parking slots synchronized successfully", syncResult, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   createParkingSlot = async (req, res, next) => {
     try {
       const slot = await parkingSlotService.createParkingSlot(req.body);

@@ -135,7 +135,6 @@ export function DashboardLayout() {
       >
         <div className="px-6 h-16 flex items-center justify-between border-b border-white/10">
           <Link to="/" className="flex items-center gap-2">
-            <span className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-secondary font-bold">P</span>
             <span className="font-bold">ParkWise <span className="text-primary">AI</span></span>
           </Link>
           <button className="lg:hidden" onClick={() => setMobileOpen(false)}><X className="h-5 w-5" /></button>

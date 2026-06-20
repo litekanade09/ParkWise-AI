@@ -130,9 +130,6 @@ function Login() {
     <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto w-full max-w-md text-center">
         <Link to="/" className="inline-flex items-center gap-2 mb-6">
-          <span className="h-10 w-10 rounded-xl bg-primary grid place-items-center text-primary-foreground font-bold shadow-soft">
-            P
-          </span>
           <span className="font-bold text-2xl tracking-tight text-foreground">
             ParkWise <span className="text-primary">AI</span>
           </span>

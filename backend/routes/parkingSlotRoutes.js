@@ -6,12 +6,15 @@ import { protect, authorize } from "../middlewares/auth.js";
 
 const router = express.Router();
 
+// Public routes (accessible by AI services without JWT)
+router.get("/", parkingSlotController.getAllParkingSlots);
+router.post("/sync-occupancy", parkingSlotController.syncOccupancy);
+
 router.use(protect);
 
 router
   .route("/")
-  .post(authorize("parking_manager"), parkingSlotCreateRules, validate, parkingSlotController.createParkingSlot)
-  .get(parkingSlotController.getAllParkingSlots);
+  .post(authorize("parking_manager"), parkingSlotCreateRules, validate, parkingSlotController.createParkingSlot);
 
 router
   .route("/:id")
