@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from ultralytics import YOLO
 import os
 import requests
+import tempfile
 
 app = Flask(__name__)
 
@@ -26,22 +27,25 @@ def health():
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    data = request.get_json()
-    if not data or "imagePath" not in data:
-        return jsonify({"error": "imagePath is required in JSON payload"}), 400
+    if "image" not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
+        
+    file = request.files["image"]
+    if file.filename == "":
+        return jsonify({"error": "No image uploaded"}), 400
+        
+    parking_lot_id = request.form.get("parkingLotId")
     
-    image_path = data["imagePath"]
-    parking_lot_id = data.get("parkingLotId")
-    
-    # Handle both relative and absolute paths cleanly
-    normalized_path = os.path.abspath(image_path)
-    
-    if not os.path.exists(normalized_path):
-        return jsonify({"error": f"Image file not found at: {image_path}"}), 404
-    
+    temp_path = None
     try:
+        # Save uploaded image to a temporary file
+        suffix = os.path.splitext(file.filename)[1]
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            temp_path = temp_file.name
+            file.save(temp_path)
+            
         # Run prediction using YOLOv8
-        results = model.predict(source=normalized_path, conf=0.25, save=False, verbose=False)
+        results = model.predict(source=temp_path, conf=0.25, save=False, verbose=False)
         
         empty_count = 0
         occupied_count = 0
@@ -141,6 +145,12 @@ def analyze():
         
     except Exception as e:
         return jsonify({"error": f"Inference execution failed: {str(e)}"}), 500
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception as ex:
+                print(f"Error removing temporary file {temp_path}: {ex}")
 
 if __name__ == "__main__":
     # Runs on port 5001 to avoid conflict with node.js backend on port 5000
